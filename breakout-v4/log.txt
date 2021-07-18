@@ -1214,4 +1214,4 @@ time 17h 51m 20s, episodes 52604, frames 79.8M, mean epr 181.29, run loss 94.98
 time 17h 52m 20s, episodes 52645, frames 79.9M, mean epr 178.09, run loss 93.66
 time 17h 53m 20s, episodes 52686, frames 80.0M, mean epr 173.53, run loss 86.60
 
-	80M frames: saved model
+	80M frames: saved modeltime 00h 01m 00s, episodes 1, frames 80.0M, mean epr 98.00, run loss 35.98

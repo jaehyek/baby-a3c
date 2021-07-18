@@ -1,0 +1,12 @@
+
+1. conda install python=3.6
+2. codna install pytorch
+3. pip install gym[atari]
+4. pip install numpy==1.16.4
+5. pip install Pillow
+4. pip install scipy==1.1.0
+
+
+http://www.atarimania.com/rom_collection_archive_atari_2600_roms.html 에서 ROM.rar을 download한다.
+unzip ROM.rar.
+dos > python -m atari_py.import_roms D:\proj_kiwoom\Atari_Roms\ROMS\ROMS  # bin dir 을 지정하고, bin을 copy하게 한다.

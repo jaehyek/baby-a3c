@@ -5,6 +5,8 @@ import torch, os, gym, time, glob, argparse, sys
 import numpy as np
 from scipy.signal import lfilter
 from scipy.misc import imresize # preserves single-pixel info _unlike_ img = img[::2,::2]
+from PIL import Image
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.multiprocessing as mp
@@ -27,6 +29,7 @@ def get_args():
 
 discount = lambda x, gamma: lfilter([1],[1,-gamma],x[::-1])[::-1] # discounted rewards one liner
 prepro = lambda img: imresize(img[35:195].mean(2), (80,80)).astype(np.float32).reshape(1,80,80)/255.
+# prepro = lambda img: np.array(Image.fromarray(obj=img, mode='F').resize(size=(80, 80), resample=Image.BICUBIC)).astype(np.float32).reshape(1,80,80)/255.
 
 def printlog(args, s, end='\n', mode='a'):
     print(s, end=end) ; f=open(args.save_dir+'log.txt',mode) ; f.write(s+'\n') ; f.close()
