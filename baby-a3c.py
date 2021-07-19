@@ -4,8 +4,8 @@ from __future__ import print_function
 import torch, os, gym, time, glob, argparse, sys
 import numpy as np
 from scipy.signal import lfilter
-from scipy.misc import imresize # preserves single-pixel info _unlike_ img = img[::2,::2]
-from PIL import Image
+# from scipy.misc import imresize # preserves single-pixel info _unlike_ img = img[::2,::2]
+import cv2
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -28,8 +28,8 @@ def get_args():
     return parser.parse_args()
 
 discount = lambda x, gamma: lfilter([1],[1,-gamma],x[::-1])[::-1] # discounted rewards one liner
-prepro = lambda img: imresize(img[35:195].mean(2), (80,80)).astype(np.float32).reshape(1,80,80)/255.
-# prepro = lambda img: np.array(Image.fromarray(obj=img, mode='F').resize(size=(80, 80), resample=Image.BICUBIC)).astype(np.float32).reshape(1,80,80)/255.
+# prepro = lambda img: imresize(img[35:195].mean(2), (80,80)).astype(np.float32).reshape(1,80,80)/255.
+prepro = lambda img: cv2.resize(img[35:195].mean(2), (80,80)).astype(np.float32).reshape(1,80,80)/255.
 
 def printlog(args, s, end='\n', mode='a'):
     print(s, end=end) ; f=open(args.save_dir+'log.txt',mode) ; f.write(s+'\n') ; f.close()
@@ -102,7 +102,8 @@ def train(shared_model, shared_optimizer, rank, args, info):
     env = gym.make(args.env) # make a local (unshared) environment
     env.seed(args.seed + rank) ; torch.manual_seed(args.seed + rank) # seed everything
     model = NNPolicy(channels=1, memsize=args.hidden, num_actions=args.num_actions) # a local/unshared model
-    state = torch.tensor(prepro(env.reset())) # get first state
+    img = env.reset()
+    state = torch.tensor(prepro(img)) # get first state
 
     start_time = last_disp_time = time.time()
     episode_length, epr, eploss, done  = 0, 0, 0, True # bookkeeping
@@ -155,18 +156,20 @@ def train(shared_model, shared_optimizer, rank, args, info):
 
         loss = cost_func(args, torch.cat(values), torch.cat(logps), torch.cat(actions), np.asarray(rewards))
         eploss += loss.item()
-        shared_optimizer.zero_grad() ; loss.backward()
+        shared_optimizer.zero_grad()
+        loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 40)
 
         for param, shared_param in zip(model.parameters(), shared_model.parameters()):
-            if shared_param.grad is None: shared_param._grad = param.grad # sync gradients with shared model
+            if shared_param.grad is None:
+                shared_param._grad = param.grad # sync gradients with shared model
         shared_optimizer.step()
 
 if __name__ == "__main__":
     if sys.version_info[0] > 2:
         mp.set_start_method('spawn') # this must not be in global scope
     elif sys.platform == 'linux' or sys.platform == 'linux2':
-        raise "Must be using Python 3 with linux!" # or else you get a deadlock in conv2d
+        raise Exception("Must be using Python 3 with linux!") # or else you get a deadlock in conv2d
     
     args = get_args()
     args.save_dir = '{}/'.format(args.env.lower()) # keep the directory structure simple
