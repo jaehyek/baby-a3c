@@ -16,7 +16,7 @@ def get_args():
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--env', default='Breakout-v4', type=str, help='gym environment')
     parser.add_argument('--processes', default=20, type=int, help='number of processes to train with')
-    parser.add_argument('--render', default=False, type=bool, help='renders the atari environment')
+    parser.add_argument('--render', default=True, type=bool, help='renders the atari environment')
     parser.add_argument('--test', default=False, type=bool, help='sets lr=0, chooses most likely actions')
     parser.add_argument('--rnn_steps', default=20, type=int, help='steps to train LSTM over')
     parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
@@ -119,15 +119,18 @@ def train(shared_model, shared_optimizer, rank, args, info):
             value, logit, hx = model((state.view(1,1,80,80), hx))
             logp = F.log_softmax(logit, dim=-1)
 
-            action = torch.exp(logp).multinomial(num_samples=1).data[0]#logp.max(1)[1].data if args.test else
+            action = torch.exp(logp).multinomial(num_samples=1).data[0] # 확률에 의한  sampling 작업.
             state, reward, done, _ = env.step(action.numpy()[0])
-            if args.render: env.render()
+            if args.render:
+                env.render()
 
-            state = torch.tensor(prepro(state)) ; epr += reward
+            state = torch.tensor(prepro(state))
+            epr += reward
             reward = np.clip(reward, -1, 1) # reward
             done = done or episode_length >= 1e4 # don't playing one ep for too long
             
-            info['frames'].add_(1) ; num_frames = int(info['frames'].item())
+            info['frames'].add_(1)
+            num_frames = int(info['frames'].item())
             if num_frames % 2e6 == 0: # save every 2M frames
                 printlog(args, '\n\t{:.0f}M frames: saved model\n'.format(num_frames/1e6))
                 torch.save(shared_model.state_dict(), args.save_dir+'model.{:.0f}.tar'.format(num_frames/1e6))
