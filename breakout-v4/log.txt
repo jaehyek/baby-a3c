@@ -1,1 +1,7 @@
 
+time 00h 01m 00s, episodes 10, frames 0.0M, mean episode_rewards 2.01, run loss 34.33
+time 00h 02m 00s, episodes 23, frames 0.0M, mean episode_rewards 1.83, run loss 30.01
+time 00h 03m 00s, episodes 37, frames 0.0M, mean episode_rewards 1.68, run loss 26.22
+time 00h 04m 00s, episodes 49, frames 0.0M, mean episode_rewards 1.61, run loss 23.17
+time 00h 05m 00s, episodes 60, frames 0.0M, mean episode_rewards 1.64, run loss 21.21
+time 00h 06m 00s, episodes 71, frames 0.0M, mean episode_rewards 1.60, run loss 19.11

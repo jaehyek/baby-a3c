@@ -147,11 +147,11 @@ def train(shared_model, shared_optimizer, rank, args, dict_info):
             if done: # update shared data
                 dict_info['episodes'] += 1
                 interp = 1 if dict_info['episodes'][0] == 1 else 1 - args.horizon
-                dict_info['run_episode_rewards'].mul_(1 - interp).add_(interp * episode_rewards)
+                dict_info['run_episode_rewards'].mul_(1 - interp).add_(interp * episode_rewards) # 이 전의 것은 99%, 새로 추가는 1% 반영
                 dict_info['run_episode_losses'].mul_(1 - interp).add_(interp * episode_losses)
 
-            if rank == 0 and time.time() - last_disp_time > 60: # print info ~ every minute
-                elapsed = time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time))
+            if rank == 0 and time.time() - last_disp_time > 60: # 0 worker에서  매 분마다.
+                elapsed = time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time))       # 시작부터 걸린시간.
                 printlog(args, 'time {}, episodes {:.0f}, frames {:.1f}M, mean episode_rewards {:.2f}, run loss {:.2f}'
                          .format(elapsed, dict_info['episodes'].item(), num_frames / 1e6,
                                  dict_info['run_episode_rewards'].item(), dict_info['run_episode_losses'].item()))
