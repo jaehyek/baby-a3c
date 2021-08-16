@@ -16,7 +16,7 @@ def get_args():
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--env', default='Breakout-v4', type=str, help='gym environment')
     parser.add_argument('--processes', default=20, type=int, help='number of processes to train with')
-    parser.add_argument('--render', default=True, type=bool, help='renders the atari environment')
+    parser.add_argument('--render', default=False, type=bool, help='renders the atari environment')
     parser.add_argument('--test', default=False, type=bool, help='sets lr=0, chooses most likely actions')
     parser.add_argument('--rnn_steps', default=20, type=int, help='steps to train LSTM over')
     parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
@@ -91,7 +91,8 @@ def cost_func(args, values, logps, actions, rewards):
 
     # generalized advantage estimation using \delta_t residuals (a policy gradient method)
     delta_t = np.asarray(rewards) + args.gamma * np_values[1:] - np_values[:-1]     # delta_t(20,)
-    logpys = logps.gather(1, torch.tensor(actions).view(-1,1))      # logps 의 dim=1 에 대해, 각각 action에 해당하는  값을 추출.
+    # logpys = logps.gather(1, torch.tensor(actions).view(-1,1))      # logps 의 dim=1 에 대해, 각각 action에 해당하는  값을 추출.
+    logpys = logps.gather(1, actions.clone().detach().view(-1, 1))  # logps 의 dim=1 에 대해, 각각 action에 해당하는  값을 추출.
     gen_adv_est = discount(delta_t, args.gamma * args.tau)
     policy_loss = -(logpys.view(-1) * torch.FloatTensor(gen_adv_est.copy())).sum()
     
